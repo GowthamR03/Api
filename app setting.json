@@ -1,0 +1,13 @@
+{
+  "ConnectionStrings": {
+    "DemoPractice": "Server=INLOGICPCS149\\MSSSQLSERVER;Database=DemoPractice;Initial Catalog=DemoPractice;Integrated Security=True;"
+
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "AllowedHosts": "*"
+}
