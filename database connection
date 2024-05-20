@@ -1,0 +1,123 @@
+using Microsoft.AspNetCore.Mvc;
+using System.Data;
+using System.Data.SqlClient;
+using System.Threading.Tasks;
+
+namespace WebApplication1.Controllers
+{
+
+    [ApiController]
+    public class RegformControllers : ControllerBase
+    {
+        private IConfiguration _configuration;
+        public RegformControllers(IConfiguration configuration)
+        {
+            _configuration = configuration;
+        }
+
+        //get data 
+
+        [HttpGet("get_task")]
+        public JsonResult get_task()
+        {
+            //string query = "select * from regform";
+            string query = "GetEmpdetail";
+            DataTable table = new DataTable();
+            string sqlDatasource = _configuration.GetConnectionString("DemoPractice");
+            SqlDataReader myReader;
+            using (SqlConnection myCon = new SqlConnection(sqlDatasource))
+            {
+                myCon.Open();
+                using (SqlCommand mycommand = new SqlCommand(query, myCon))
+                {
+                    mycommand.CommandType = CommandType.StoredProcedure;
+                    myReader = mycommand.ExecuteReader();
+                    table.Load(myReader);
+                }
+            }
+            return new JsonResult(table);
+        }
+
+        //add data
+
+        [HttpPost("add_task")]
+        public JsonResult add_task(StaffTask st)
+        {
+           // string query = "EXEC Inserttask @task ='" + task + "'";
+            string query= "INSERT INTO regform (task) VALUES (@task)";
+            DataTable table = new DataTable();
+            string sqlDatasource = _configuration.GetConnectionString("DemoPractice");
+            SqlDataReader myReader;
+            using (SqlConnection myCon = new SqlConnection(sqlDatasource))
+            {
+                myCon.Open();
+                using (SqlCommand mycommand = new SqlCommand(query, myCon))
+                {
+
+                    mycommand.Parameters.AddWithValue("@task", st.task);
+                    myReader = mycommand.ExecuteReader();
+                    table.Load(myReader);
+                }
+            }
+            return new JsonResult("added successfully");
+
+        }
+
+        //delete 
+
+        [HttpDelete("delete_task")]
+        public JsonResult delete_task([FromForm] string id)
+        {
+            string query = "delete from regform where id=@id";
+            DataTable table = new DataTable();
+            string sqlDatasource = _configuration.GetConnectionString("DemoPractice");
+            SqlDataReader myReader;
+            using (SqlConnection myCon = new SqlConnection(sqlDatasource))
+            {
+                myCon.Open();
+                using (SqlCommand mycommand = new SqlCommand(query, myCon))
+                {
+                    mycommand.Parameters.AddWithValue("@id", id);
+                    myReader = mycommand.ExecuteReader();
+                    table.Load(myReader);
+                }
+            }
+            return new JsonResult("deleted successfully");
+        }
+
+        //To update
+        [HttpPut("update_task/{id}")]
+        public IActionResult UpdateTask(int id, [FromBody] string name)
+        {
+            string query = "exec Updatetask @Id = '" + id + "',@task = '" + name + "'";
+
+            using (SqlConnection connection = new SqlConnection(_configuration.GetConnectionString("DemoPractice")))
+            {
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Id", id);
+                    command.Parameters.AddWithValue("@task", name);
+
+                    connection.Open();
+                    int rowsAffected = command.ExecuteNonQuery();
+                    connection.Close();
+
+                    if (rowsAffected > 0)
+                    {
+                        return Ok("Updated successfully");
+                    }
+                    else
+                    {
+                        return NotFound("Task not found");
+                    }
+                }
+            }
+        }
+    }
+
+
+    public class StaffTask
+    {
+        public string  task { get; set; }
+    }
+}
